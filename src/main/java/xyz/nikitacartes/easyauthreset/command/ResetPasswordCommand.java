@@ -24,6 +24,10 @@ import static net.minecraft.server.command.CommandManager.literal;
  *   /resetpassword bind confirm &lt;验证码&gt;  绑定确认：完成邮箱绑定
  * </pre>
  * 未登录玩家同样可以执行（玩家实体已建立，指令注册与登录状态无关）。
+ *
+ * <p><b>解析要点（已实测验证）</b>：Brigadier 的 string() 不允许 @ 和 .（会把邮箱截断），
+ * 因此邮箱/验证码参数必须用 greedyString()；且子命令字面量（bind/confirm）必须排在
+ * email 参数之前，否则输入 "bind xxx" 会被当成邮箱参数。</p>
  */
 public class ResetPasswordCommand {
 
@@ -31,21 +35,21 @@ public class ResetPasswordCommand {
         dispatcher.register(literal("resetpassword")
                 // 无参数：已绑定则直接以绑定邮箱申请重置
                 .executes(ResetPasswordCommand::requestRoot)
-                .then(argument("email", StringArgumentType.string())
-                        .executes(ResetPasswordCommand::request))
-                .then(literal("confirm")
-                        .then(argument("code", StringArgumentType.string())
-                                .executes(ResetPasswordCommand::confirm)))
                 .then(literal("bind")
                         .executes(ctx -> {
                             sendLang(ctx, "usage");
                             return 0;
                         })
-                        .then(argument("email", StringArgumentType.string())
-                                .executes(ResetPasswordCommand::bindRequest))
                         .then(literal("confirm")
-                                .then(argument("code", StringArgumentType.string())
-                                        .executes(ResetPasswordCommand::bindConfirm)))));
+                                .then(argument("code", StringArgumentType.greedyString())
+                                        .executes(ResetPasswordCommand::bindConfirm)))
+                        .then(argument("email", StringArgumentType.greedyString())
+                                .executes(ResetPasswordCommand::bindRequest)))
+                .then(literal("confirm")
+                        .then(argument("code", StringArgumentType.greedyString())
+                                .executes(ResetPasswordCommand::confirm)))
+                .then(argument("email", StringArgumentType.greedyString())
+                        .executes(ResetPasswordCommand::request)));
     }
 
     private static int requestRoot(CommandContext<ServerCommandSource> ctx) {

@@ -38,13 +38,15 @@
    - 重启服务器生效
 
 > 📄 完整配置示例见仓库根目录 [easyauthreset.example.json](easyauthreset.example.json)。
+> 服务器首次运行生成的 `config/easyauthreset.json` **自带 `_说明` 字段**（每个配置项的中文解释），
+> 照着说明填即可；`_说明` 不会被读取，不影响运行。
 
 ## 支持的命令
 
 | 命令 | 说明 |
 |---|---|
 | `/resetpassword` | 无参数：已绑定/已登记 → 直接向绑定邮箱申请重置；否则显示用法 |
-| `/resetpassword <邮箱>` | 申请重置（仅当账号<b>未绑定</b>且 `requireEmailBind: false` 时才接受输入邮箱；默认会拒绝并提示先绑定） |
+| `/resetpassword <邮箱>` | 申请重置（仅当账号<b>未绑定</b>且 `requireEmailBind: false` 时才接受输入邮箱；默认会拒绝并提示先绑定）。支持任意主流邮箱（QQ/163/Gmail/Outlook/126 等，`用户名@域名` 即可） |
 | `/resetpassword confirm <验证码>` | 确认重置，生成临时密码（邮件 + 私聊消息） |
 | `/resetpassword bind <邮箱>` | 绑定/更换邮箱：向该邮箱发验证码（验证所有权；已有绑定则提示"更换"） |
 | `/resetpassword bind confirm <验证码>` | 完成绑定/更换 |

@@ -53,8 +53,6 @@ public class EasyAuthResetConfig {
     public String emailReplyTo = "";
     /** SMTP 连接/读写超时（毫秒） */
     public int smtpTimeoutMillis = 15000;
-    /** 发送失败后的额外重试次数（0 = 不重试） */
-    public int smtpRetries = 1;
 
     // ---- 验证码 ----
     /** 验证码有效期（秒） */

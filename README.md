@@ -195,7 +195,8 @@
 
 产物：`build/libs/easyauthreset-1.0.0.jar`（javax.mail 以嵌套 jar 打入 `META-INF/jars/`）。
 
-- **CI**：[`.github/workflows/build.yml`](.github/workflows/build.yml) —— push/PR 自动下载 EasyAuth API jar 并构建，产物上传为 artifact。
+- **CI**：[`.github/workflows/build.yml`](.github/workflows/build.yml) —— push/PR 自动下载 EasyAuth API jar 并构建，产物上传为 artifact（Actions 页面可下载，保留 90 天）。
+- **发布**：[`.github/workflows/release.yml`](.github/workflows/release.yml) —— 打 `v*` 标签（如 `git tag v1.0.0 && git push origin v1.0.0`）时自动构建并**发布 GitHub Release**，jar 作为附件挂在 Release 页面（建议发布前把 `gradle.properties` 的 `mod_version` 同步成标签版本号）。
 - **构建排坑**：EasyAuth 3.4.4 jar 由 Loom 1.14.10 构建（更高版本 Loom 才能作为依赖），且其模块元数据与 `plugins {}` 标记机制冲突，故使用 **buildscript classpath 方式**应用 Loom 1.17.19（见 `build.gradle` 注释）。
 
 ### 开发模式运行

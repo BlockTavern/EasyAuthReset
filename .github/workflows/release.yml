@@ -1,0 +1,54 @@
+name: Release
+
+# 打 v 开头标签（如 v1.0.0）时自动构建并发布 GitHub Release
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Download EasyAuth API jar (compile-time only)
+        run: |
+          mkdir -p libs
+          curl -L -o libs/easyauth-mc1.21-3.4.4.jar \
+            https://cdn.modrinth.com/data/aZj58GfX/versions/bga5lUKd/easyauth-mc1.21-3.4.4.jar
+
+      - name: Build
+        run: ./gradlew build --no-daemon
+
+      - name: Verify tag matches mod_version
+        run: |
+          v=$(grep '^mod_version=' gradle.properties | cut -d= -f2 | tr -d '\r')
+          t=${GITHUB_REF_NAME#v}
+          echo "mod_version=$v tag=$t"
+          if [ "$v" != "$t" ]; then
+            echo "::warning::Tag v$t does not match mod_version $v in gradle.properties (release jar will still be built)"
+          fi
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: build/libs/easyauthreset-*.jar
+          name: EasyAuthReset ${{ github.ref_name }}
+          body: |
+            自动构建发布（EasyAuthReset ${{ github.ref_name }}）
+
+            - 目标环境：Fabric 1.21 / 1.21.1（纯服务端）
+            - 依赖：Fabric API、EasyAuth ≥ 3.3.5（推荐 3.4.4）
+            - 用法：把 `easyauthreset-*.jar` 放入服务器 `mods/`，启动后按 `config/easyauthreset.json` 中 `_说明` 配置 SMTP 即可
+            - 完整说明：README.md

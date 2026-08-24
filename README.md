@@ -234,3 +234,4 @@ src/main/java/xyz/nikitacartes/easyauthreset/
 | 提示"请先绑定" | 执行 `/resetpassword bind <邮箱>`，或由服主在 `mailmap` 登记 |
 | 点击激活页面打不开 | 检查防火墙端口 / `activationPublicUrl` 是否与端口一致；反代方案确认路径 `/easyauthreset/` |
 | 更新密码后无法登录 | 检查 EasyAuth 数据库连接；确认临时密码完整（含特殊字符后无多余空格） |
+| 控制台出现中文乱码（类似 `宸茬敓鎴?`） | 这是 Windows 控制台编码问题：**服务器端日志已全部使用英文**（管理员向），玩家游戏内消息与邮件不受影响、正常显示中文。若仍出现乱码，可尝试在启动脚本中加 `-Dfile.encoding=UTF-8` 或控制台执行 `chcp 65001` |

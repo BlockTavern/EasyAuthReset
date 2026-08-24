@@ -78,7 +78,7 @@ public class GmailEmailService implements EmailService {
             if (value != null && !value.isEmpty()) {
                 return value;
             }
-            LOGGER.warn("环境变量 {} 未设置或为空，回退使用配置文件中的 emailPassword", envVar);
+            LOGGER.warn("Env var {} is unset or empty; falling back to emailPassword in config", envVar);
         }
         return config.emailPassword == null ? "" : config.emailPassword;
     }
@@ -115,7 +115,7 @@ public class GmailEmailService implements EmailService {
     @Override
     public void sendAdminAlert(String subject, String body) {
         if (config.alertEmail == null || config.alertEmail.isBlank()) {
-            LOGGER.info("安全事件邮件未发送（未配置 alertEmail）：{}", subject);
+            LOGGER.info("Security alert email not sent (alertEmail not configured): {}", subject);
             return;
         }
         send(config.alertEmail.trim(), subject, body, null);
@@ -137,7 +137,7 @@ public class GmailEmailService implements EmailService {
                 } catch (MessagingException e) {
                     ok = false;
                     if (i < attempts) {
-                        LOGGER.warn("邮件发送失败 (to={})，第 {}/{} 次尝试，3 秒后重试", to, i, attempts, e);
+                        LOGGER.warn("Mail send failed (to={}), attempt {}/{}; retrying in 3s", to, i, attempts, e);
                         try {
                             Thread.sleep(3000);
                         } catch (InterruptedException ie) {
@@ -145,11 +145,11 @@ public class GmailEmailService implements EmailService {
                             break;
                         }
                     } else {
-                        LOGGER.error("邮件发送失败 (to={})，已重试 {} 次", to, attempts, e);
+                        LOGGER.error("Mail send failed (to={}) after {} attempts", to, attempts, e);
                     }
                 } catch (Exception e) {
                     ok = false;
-                    LOGGER.error("邮件发送失败 (to={})", to, e);
+                    LOGGER.error("Mail send failed (to={})", to, e);
                 }
             }
             final boolean sent = ok;

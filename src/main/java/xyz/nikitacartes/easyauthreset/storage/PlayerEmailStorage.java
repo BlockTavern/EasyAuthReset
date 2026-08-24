@@ -120,7 +120,7 @@ public class PlayerEmailStorage {
                 }
             }
         } catch (IOException | JsonParseException e) {
-            LOGGER.warn("读取 easyauthreset_emails.json 失败", e);
+            LOGGER.warn("Failed to read easyauthreset_emails.json", e);
         }
     }
 
@@ -129,9 +129,9 @@ public class PlayerEmailStorage {
             // 首次运行：生成空模板并提示，避免服主不知道有该文件
             try (Writer writer = Files.newBufferedWriter(ownerFilePath)) {
                 gson.toJson(Map.of(), writer);
-                LOGGER.info("已生成服主邮箱登记文件 config/easyauthreset_mailmap.json（格式：{\"玩家名小写\": \"邮箱\", \"玩家UUID\": \"邮箱\"}）");
+                LOGGER.info("Created admin mailmap template config/easyauthreset_mailmap.json (format: {\"username_lowercase\": \"email\", \"player_uuid\": \"email\"})");
             } catch (IOException e) {
-                LOGGER.error("写入 easyauthreset_mailmap.json 失败", e);
+                LOGGER.error("Failed to write easyauthreset_mailmap.json", e);
             }
             return;
         }
@@ -143,7 +143,7 @@ public class PlayerEmailStorage {
                 }
             }
         } catch (IOException | JsonParseException e) {
-            LOGGER.warn("读取 easyauthreset_mailmap.json 失败（格式：{\"玩家名小写\": \"邮箱\"}）", e);
+            LOGGER.warn("Failed to read easyauthreset_mailmap.json (format: {\"username_lowercase\": \"email\"})", e);
         }
     }
 
@@ -154,7 +154,7 @@ public class PlayerEmailStorage {
         try (Writer writer = Files.newBufferedWriter(filePath)) {
             gson.toJson(data, writer);
         } catch (IOException e) {
-            LOGGER.error("写入 easyauthreset_emails.json 失败", e);
+            LOGGER.error("Failed to write easyauthreset_emails.json", e);
         }
     }
 }

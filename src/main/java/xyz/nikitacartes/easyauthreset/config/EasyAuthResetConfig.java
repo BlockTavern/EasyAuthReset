@@ -124,7 +124,7 @@ public class EasyAuthResetConfig {
                 JsonObject obj = JsonParser.parseReader(reader).getAsJsonObject();
                 dirty = config.apply(obj);
             } catch (IOException | JsonParseException e) {
-                LOGGER.warn("读取 easyauthreset.json 失败，使用默认配置", e);
+                LOGGER.warn("Failed to read easyauthreset.json; using defaults", e);
             }
         }
 
@@ -167,7 +167,7 @@ public class EasyAuthResetConfig {
             } catch (NoSuchFieldException ignored) {
                 // 未知字段：忽略
             } catch (Exception e) {
-                LOGGER.warn("配置字段 {} 无法解析，使用默认值", entry.getKey(), e);
+                LOGGER.warn("Cannot parse config field {}; using default", entry.getKey(), e);
             }
         }
         return dirty;
@@ -211,7 +211,7 @@ public class EasyAuthResetConfig {
         try (Writer writer = Files.newBufferedWriter(path)) {
             gson.toJson(this, writer);
         } catch (IOException e) {
-            LOGGER.error("写入 easyauthreset.json 失败", e);
+            LOGGER.error("Failed to write easyauthreset.json", e);
         }
     }
 }

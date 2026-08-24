@@ -80,9 +80,9 @@ public class EasyAuthReset implements ModInitializer {
         });
 
         if (!config.isMailConfigured()) {
-            LOGGER.warn("SMTP 尚未配置（邮箱/应用专用密码或环境变量为空），请在 config/easyauthreset.json 中填写后重启服务器！");
+            LOGGER.warn("SMTP is not configured (sender/app-password or env var empty). Fill config/easyauthreset.json and restart the server!");
         }
-        LOGGER.info("EasyAuthReset 初始化完成（面向 EasyAuth 3.3.5+/3.4.x 真实 API）。");
+        LOGGER.info("EasyAuthReset initialized (EasyAuth 3.3.5+/3.4.x API).");
     }
 
     public static EasyAuthReset getInstance() {

@@ -55,7 +55,7 @@ public class HttpActivationServer {
     public void start() {
         if (!isEnabled()) {
             if (config.enableClickActivation) {
-                LOGGER.error("enableClickActivation=true 但 activationPublicUrl 为空，点击激活不可用（仅验证码方式）");
+                LOGGER.error("enableClickActivation=true but activationPublicUrl is empty; click activation unavailable (code only)");
             }
             return;
         }
@@ -64,10 +64,10 @@ public class HttpActivationServer {
             server.createContext(CONTEXT_PATH, this::handleActivate);
             server.setExecutor(executor);
             server.start();
-            LOGGER.info("点击激活服务已启动: http://{}:{}{}<token> (公开地址: {})",
+            LOGGER.info("Click-activation service started: http://{}:{}{}<token> (public URL: {})",
                     config.activationHttpBind, config.activationHttpPort, CONTEXT_PATH, config.activationPublicUrl);
         } catch (IOException e) {
-            LOGGER.error("无法启动点击激活 HTTP 服务（端口 {} 被占用或地址非法）", config.activationHttpPort, e);
+            LOGGER.error("Cannot start click-activation HTTP service (port {} in use or invalid bind address)", config.activationHttpPort, e);
         }
     }
 
@@ -87,7 +87,7 @@ public class HttpActivationServer {
 
             if (outcome.result() == VerificationCodeManager.ActivateResult.SUCCESS) {
                 String email = emailStorage.getBinding(outcome.uuid());
-                LOGGER.info("点击激活绑定成功: uuid={}, 邮箱={}", outcome.uuid(), email);
+                LOGGER.info("Click-activation bind success: uuid={}, email={}", outcome.uuid(), email);
                 respondHtml(exchange, 200, page("绑定成功", "✅ 邮箱绑定成功",
                         "该账号的邮箱已验证并绑定，请返回游戏，直接执行 /resetpassword 申请重置密码。"));
             } else {
@@ -95,7 +95,7 @@ public class HttpActivationServer {
                         "该激活链接不存在、已使用或已过期。请返回游戏重新执行 /resetpassword bind <邮箱> 获取新链接。"));
             }
         } catch (Exception e) {
-            LOGGER.error("处理激活请求异常", e);
+            LOGGER.error("Error handling activation request", e);
             respondHtml(exchange, 500, page("500", "服务器内部错误", "请稍后重试。"));
         } finally {
             exchange.close();

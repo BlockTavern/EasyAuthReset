@@ -123,7 +123,7 @@ public class StateStorage {
                 }
             }
         } catch (IOException | JsonParseException e) {
-            LOGGER.warn("读取 easyauthreset_state.json 失败，忽略已保存的状态", e);
+            LOGGER.warn("Failed to read easyauthreset_state.json; ignoring saved state", e);
         }
     }
 
@@ -134,7 +134,7 @@ public class StateStorage {
         try (Writer writer = Files.newBufferedWriter(path)) {
             gson.toJson(data, writer);
         } catch (IOException e) {
-            LOGGER.error("写入 easyauthreset_state.json 失败", e);
+            LOGGER.error("Failed to write easyauthreset_state.json", e);
         }
     }
 

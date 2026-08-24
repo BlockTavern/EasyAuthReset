@@ -165,8 +165,8 @@ public class PasswordResetHandler {
         emailStorage.setEmail(uuid, targetEmail);
 
         String code = codeManager.generateAndStore(uuid, VerificationCodeManager.Purpose.RESET);
-        LOGGER.info("密码重置申请: 玩家={} (uuid={}) -> 邮箱={}{}", name, uuid, targetEmail,
-                fromOwner ? " (服主登记)" : fromBind ? " (绑定邮箱)" : "");
+        LOGGER.info("Password reset request: player={} (uuid={}) -> email={}{}", name, uuid, targetEmail,
+                fromOwner ? " (admin-registered)" : fromBind ? " (bound email)" : "");
         final boolean ownerManaged = fromOwner;
 
         emailService.sendVerificationCode(targetEmail, name, code, null, sent -> {
@@ -220,8 +220,8 @@ public class PasswordResetHandler {
         emailStorage.setEmail(uuid, trimmedEmail);
 
         String code = codeManager.generateAndStore(uuid, VerificationCodeManager.Purpose.BIND);
-        LOGGER.info("邮箱绑定申请: 玩家={} (uuid={}) -> 邮箱={}{}", player.getName().getString(), uuid, trimmedEmail,
-                emailStorage.getBinding(uuid) != null ? " (更换)" : "");
+        LOGGER.info("Email bind request: player={} (uuid={}) -> email={}{}", player.getName().getString(), uuid, trimmedEmail,
+                emailStorage.getBinding(uuid) != null ? " (rebind)" : "");
 
         // 点击激活链接（可选）：仅绑定用途；需 enableClickActivation 且配置了公开地址
         String link = null;
@@ -273,7 +273,7 @@ public class PasswordResetHandler {
         emailStorage.setBinding(uuid, pendingEmail);
         cooldownMap.remove(uuid);
         state.removeCooldown(uuid);
-        LOGGER.info("邮箱绑定成功: 玩家={} (uuid={}) -> 邮箱={}", player.getName().getString(), uuid, pendingEmail);
+        LOGGER.info("Email bind success: player={} (uuid={}) -> email={}", player.getName().getString(), uuid, pendingEmail);
         player.sendMessage(Text.literal(Lang.msg(config, "bindDone", pendingEmail)), false);
         return true;
     }
@@ -315,7 +315,7 @@ public class PasswordResetHandler {
                 // update() 内部走 DB.updateUserData(entry) 持久化
                 entry.update();
             } catch (Throwable t) {
-                LOGGER.error("更新密码失败 (uuid={})", uuid, t);
+                LOGGER.error("Failed to update password (uuid={})", uuid, t);
                 inform(player, Lang.msg(config, "internalError"));
             }
         });
@@ -323,7 +323,7 @@ public class PasswordResetHandler {
         // 重置成功后解除冷却
         cooldownMap.remove(uuid);
         state.removeCooldown(uuid);
-        LOGGER.info("密码重置成功: 玩家={} (uuid={}), 邮箱={}", player.getName().getString(), uuid,
+        LOGGER.info("Password reset success: player={} (uuid={}), email={}", player.getName().getString(), uuid,
                 emailStorage.getEmail(uuid));
 
         String email = emailStorage.getEmail(uuid);
@@ -363,20 +363,20 @@ public class PasswordResetHandler {
                     return playerEntry;
                 }
             } catch (ReflectiveOperationException | RuntimeException e) {
-                LOGGER.warn("反射获取 EasyAuth 玩家条目失败，回退到数据库查询", e);
+                LOGGER.warn("Failed to get EasyAuth player entry via reflection, falling back to DB query", e);
             }
         }
         try {
             return EasyAuth.DB.getUserData(player.getName().getString());
         } catch (Exception e) {
-            LOGGER.error("查询 EasyAuth 玩家数据失败", e);
+            LOGGER.error("Failed to query EasyAuth player data", e);
             return null;
         }
     }
 
     private boolean isDbReady() {
         if (EasyAuth.DB == null) {
-            LOGGER.error("EasyAuth.DB 未初始化（EasyAuth 是否正常加载？）");
+            LOGGER.error("EasyAuth.DB is not initialized (is EasyAuth loaded properly?)");
             return false;
         }
         return true;
@@ -403,7 +403,7 @@ public class PasswordResetHandler {
         }
         String currentIp = currentIp(player);
         if (currentIp == null) {
-            LOGGER.warn("无法获取玩家当前IP（EasyAuth 未注入），IP 一致性检查跳过");
+            LOGGER.warn("Cannot get current player IP (EasyAuth not injected); skipping IP consistency check");
             return true;
         }
         if (currentIp.equals(entry.lastIp)) {
@@ -431,7 +431,7 @@ public class PasswordResetHandler {
         alertThrottle.put(uuid, now);
 
         String name = player.getName().getString();
-        LOGGER.warn("IP 差异告警: 玩家={} (uuid={}) 操作={} 邮箱={} 当前IP={} 历史IP={}",
+        LOGGER.warn("IP mismatch alert: player={} (uuid={}) action={} email={} currentIp={} lastIp={}",
                 name, uuid, action, email, currentIp, entry.lastIp);
 
         MinecraftServer server = player.getServer();
@@ -462,7 +462,7 @@ public class PasswordResetHandler {
             Object ip = GET_IP_METHOD.invoke(player);
             return (ip instanceof String s && !s.isEmpty()) ? s : null;
         } catch (ReflectiveOperationException | RuntimeException e) {
-            LOGGER.warn("反射获取玩家IP失败", e);
+            LOGGER.warn("Failed to get player IP via reflection", e);
             return null;
         }
     }

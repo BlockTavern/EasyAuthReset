@@ -1,0 +1,22 @@
+# Gradle
+.gradle/
+build/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+out/
+
+# Fabric dev runtime
+run/
+
+# 依赖的 EasyAuth 发布 jar（用 build.gradle 中的链接重新下载）
+libs/*.jar
+
+# EasyAuth 源码参考副本（git clone）
+reference/
+
+# 系统
+Thumbs.db
+.DS_Store

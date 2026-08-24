@@ -1,0 +1,27 @@
+package xyz.nikitacartes.easyauthreset.email;
+
+import java.util.function.Consumer;
+
+/**
+ * 邮件服务接口。所有实现必须<b>异步</b>发送（SMTP 可能阻塞数秒，严禁占用服务器主线程），
+ * 并在完成后通过 {@code onResult} 回调结果（回调线程不保证是服务器线程，调用方自行切回）。
+ */
+public interface EmailService {
+    /**
+     * 发送验证码邮件。
+     *
+     * @param activationLink 可点击的激活链接（可为 null，则该邮件仅含验证码）
+     */
+    void sendVerificationCode(String toEmail, String playerName, String code,
+                              String activationLink, Consumer<Boolean> onResult);
+
+    void sendNewPassword(String toEmail, String playerName, String newPassword, Consumer<Boolean> onResult);
+
+    /**
+     * 发送安全告警邮件给管理员（config.alertEmail）。异步发送，失败仅记日志。
+     * alertEmail 未配置时不发送。
+     */
+    void sendAdminAlert(String subject, String body);
+
+    void shutdown();
+}

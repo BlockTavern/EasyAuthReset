@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "id": "easyauthreset",
+  "version": "${version}",
+  "name": "EasyAuthReset",
+  "description": "EasyAuth 密码邮箱自助重置：玩家无需登录即可通过邮箱验证码重置 EasyAuth 密码。",
+  "authors": [
+    "Re0XIAOPA"
+  ],
+  "license": "MIT",
+  "environment": "server",
+  "entrypoints": {
+    "main": [
+      "xyz.nikitacartes.easyauthreset.EasyAuthReset"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.16.0",
+    "minecraft": "~1.21",
+    "java": ">=21",
+    "fabric-api": "*",
+    "easyauth": ">=3.3.5"
+  }
+}

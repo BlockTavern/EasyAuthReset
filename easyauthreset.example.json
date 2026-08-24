@@ -34,6 +34,7 @@
   "emailSender": "your-email@gmail.com",
   "emailPassword": "",
   "emailPasswordEnvVar": "EASTYAUTHRESET_SMTP_PASSWORD",
+  "emailReplyTo": "",
   "smtpTimeoutMillis": 15000,
   "smtpRetries": 1,
   "codeExpirySeconds": 300,

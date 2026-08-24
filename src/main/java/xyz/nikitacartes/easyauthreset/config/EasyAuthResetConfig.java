@@ -44,6 +44,13 @@ public class EasyAuthResetConfig {
      * 例如填 EASTAUTHRESET_SMTP_PASSWORD 后，在启动脚本中 export 该变量即可避免明文入库。
      */
     public String emailPasswordEnvVar = "";
+    /** 邮件失败重试后的额外重试次数（0-3，每次间隔3秒） */
+    public int smtpRetries = 1;
+    /**
+     * 可选：回复地址（Reply-To）。玩家在邮件里点"回复"时会发到这个地址，
+     * 可用于"发件箱用 QQ/163 邮箱、回复走自己域名邮箱"的组合。
+     */
+    public String emailReplyTo = "";
     /** SMTP 连接/读写超时（毫秒） */
     public int smtpTimeoutMillis = 15000;
     /** 发送失败后的额外重试次数（0 = 不重试） */
@@ -185,6 +192,7 @@ public class EasyAuthResetConfig {
         if (emailSender == null || emailSender.isBlank()) emailSender = "your-email@gmail.com";
         if (emailPassword == null) emailPassword = "";
         if (emailPasswordEnvVar == null) emailPasswordEnvVar = "";
+        if (emailReplyTo == null) emailReplyTo = "";
 
         if (codeExpirySeconds < 30 || codeExpirySeconds > 86400) codeExpirySeconds = 300;
         if (codeLength < 4 || codeLength > 10) codeLength = 6;
@@ -232,6 +240,7 @@ public class EasyAuthResetConfig {
         h.addProperty("emailSender", "【必填】发件邮箱：所有验证码/临时密码邮件从它发出，填你申请的应用专用密码所属的邮箱");
         h.addProperty("emailPassword", "【必填】该邮箱的应用专用密码/授权码（不是邮箱登录密码！Gmail：开启两步验证后到 Google 账户-安全-应用专用密码生成；QQ 邮箱：设置-账户-开启SMTP后生成授权码）");
         h.addProperty("emailPasswordEnvVar", "可选：环境变量名。填了则优先从环境变量读 SMTP 密码（如 EASTAUTHRESET_SMTP_PASSWORD），密码可不写进本文件");
+        h.addProperty("emailReplyTo", "可选：回复地址。玩家点邮件里的\"回复\"时发到这个地址（如 support@你的域名.com）；留空则回复到发件邮箱（emailSender）");
         h.addProperty("smtpTimeoutMillis", "SMTP 连接/读写超时（毫秒）");
         h.addProperty("smtpRetries", "邮件发送失败后的额外重试次数（0-3，每次间隔3秒）");
         h.addProperty("codeExpirySeconds", "验证码有效期（秒，30-86400）");

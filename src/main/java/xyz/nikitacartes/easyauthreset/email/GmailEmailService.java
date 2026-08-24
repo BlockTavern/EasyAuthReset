@@ -129,6 +129,9 @@ public class GmailEmailService implements EmailService {
                 try {
                     MimeMessage msg = new MimeMessage(session);
                     msg.setFrom(new InternetAddress(sender));
+                    if (config.emailReplyTo != null && !config.emailReplyTo.isBlank()) {
+                        msg.setReplyTo(new javax.mail.Address[]{new InternetAddress(config.emailReplyTo.trim())});
+                    }
                     msg.setRecipient(Message.RecipientType.TO, new InternetAddress(to));
                     msg.setSubject(subject, "UTF-8");
                     msg.setText(body, "UTF-8");

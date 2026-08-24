@@ -145,7 +145,12 @@ public class GmailEmailService implements EmailService {
                             break;
                         }
                     } else {
-                        LOGGER.error("Mail send failed (to={}) after {} attempts", to, attempts, e);
+                        LOGGER.error("Mail send failed (to={}) after {} attempts "
+                                + "(host={}:{}, sender={}). Hint: smtpHost must match the sender's own provider "
+                                + "(Gmail SMTP only sends Gmail mails and is unreachable from mainland China; "
+                                + "QQ mailbox: smtp.qq.com:465 + SSL, Tencent enterprise: smtp.exmail.qq.com:465 + SSL, "
+                                + "NetEase: smtp.ym.163.com:465 + SSL).", to, attempts,
+                                config.smtpHost, config.smtpPort, sender, e);
                     }
                 } catch (Exception e) {
                     ok = false;

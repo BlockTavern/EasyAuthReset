@@ -81,6 +81,21 @@
 
 配置缺失/非法字段会自动回填默认值并重写文件，不会导致启动失败。
 
+**常见 SMTP 服务商配置（选一个，`emailSender` 必须是该服务商下真实可登录的邮箱）：**
+
+| 服务商 | smtpHost | smtpPort | smtpSsl | 密码填什么 |
+|---|---|---|---|---|
+| QQ 邮箱 | `smtp.qq.com` | `465` | `true` | QQ 邮箱授权码（设置→账户→开启 SMTP 后生成） |
+| 腾讯企业邮 | `smtp.exmail.qq.com` | `465` | `true` | 企业邮登录密码/授权码 |
+| 网易 163/126 | `smtp.ym.163.com` | `465` | `true` | 163 邮箱授权码 |
+| 阿里云企业邮 | `smtp.qiye.aliyun.com` | `465` | `true` | 企业邮密码 |
+| Gmail | `smtp.gmail.com` | `587`(TLS) / `465`(SSL) | 见上 | 应用专用密码（需两步验证） |
+
+> ⚠️ **大陆服务器实测无法直连 `smtp.gmail.com`（连接超时）**；且 Gmail SMTP 只能发送 Gmail 账号的邮件。
+> 若 `emailSender` 是 QQ/163/自建域名邮箱，请务必把 `smtpHost` 换成对应服务商地址，否则发送必然失败。
+> 自建域名邮箱（如通过 Cloudflare Email Routing 转发）**只能收信、不支持 SMTP 发信**，需使用腾讯企业邮/阿里云企业邮等开通发信服务。
+> 模组启动时会检测"发件域名与 Gmail 服务器不匹配"并给出警告提示。
+
 **安全向推荐配置**（开箱即用偏安全，保持默认即可，按需微调）：
 
 ```json
@@ -231,7 +246,8 @@ src/main/java/xyz/nikitacartes/easyauthreset/
 | 现象 | 处理 |
 |---|---|
 | 启动报 `Mod was built with a newer version of Loom` | 升级 Loom（本工程已固定可用的组合） |
-| 邮件发送失败 | 检查应用专用密码 / SMTP 端口 / `smtpTimeoutMillis`；查看日志 `邮件发送失败` |
+| 邮件发送失败 | 优先检查 `smtpHost/smtpPort/smtpSsl` 是否与 `emailSender` **同一服务商**（Gmail 服务器不能发 QQ/163 邮箱，大陆也连不上 Gmail）；其次检查应用专用密码/授权码是否正确、端口是否可达；日志会打印主机/端口/发件人便于定位 |
+| 日志出现 `Mail send failed ... connect timed out` | 大陆服务器直连 `smtp.gmail.com` 不可行，按上文"常见 SMTP 服务商配置"改成国内服务商（推荐 QQ 邮箱 `smtp.qq.com:465` + 授权码） |
 | 日志出现 SMTP 未配置警告 | 填 `emailSender` + `emailPassword`（或设置 `emailPasswordEnvVar`） |
 | 验证码无效 | 确认 5 分钟内、未被使用、未超错误次数；重启后仍有效（已持久化） |
 | 提示"请先绑定" | 执行 `/resetpassword bind <邮箱>`，或由服主在 `mailmap` 登记 |

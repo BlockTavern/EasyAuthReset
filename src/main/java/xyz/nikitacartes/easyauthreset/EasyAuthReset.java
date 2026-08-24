@@ -81,8 +81,30 @@ public class EasyAuthReset implements ModInitializer {
 
         if (!config.isMailConfigured()) {
             LOGGER.warn("SMTP is not configured (sender/app-password or env var empty). Fill config/easyauthreset.json and restart the server!");
+        } else {
+            warnOnSmtpMismatch(config);
         }
         LOGGER.info("EasyAuthReset initialized (EasyAuth 3.3.5+/3.4.x API).");
+    }
+
+    /**
+     * 启动预热诊断：发件邮箱域名与 SMTP 服务器常见不匹配时给出明确警告。
+     * 典型误配：emailSender 是 QQ/163/自建域名邮箱，但 smtpHost 仍为 smtp.gmail.com ——
+     * Gmail SMTP 只发 Gmail 账号的邮件，且大陆服务器基本无法直连（连接超时）。
+     */
+    private void warnOnSmtpMismatch(EasyAuthResetConfig config) {
+        String host = config.smtpHost == null ? "" : config.smtpHost.toLowerCase();
+        String sender = config.emailSender == null ? "" : config.emailSender.trim().toLowerCase();
+        int at = sender.indexOf('@');
+        String senderDomain = at > -1 ? sender.substring(at + 1) : "";
+        boolean gmailHost = host.contains("gmail.com") || host.contains("googlemail.com");
+        if (gmailHost && !senderDomain.endsWith("gmail.com") && !senderDomain.endsWith("googlemail.com")) {
+            LOGGER.warn("Possible SMTP misconfiguration: smtpHost={} but emailSender={}. "
+                    + "Gmail's SMTP only sends for Gmail accounts, and smtp.gmail.com is unreachable from most "
+                    + "mainland-China servers (connect timeout). Use the SMTP server of your sender's provider instead, "
+                    + "e.g. smtp.qq.com:465 SSL (QQ mailbox), smtp.exmail.qq.com:465 SSL (Tencent enterprise mail), "
+                    + "smtp.ym.163.com:465 SSL (NetEase), smtp.qiye.aliyun.com:465 SSL (Alibaba enterprise mail).", host, config.emailSender);
+        }
     }
 
     public static EasyAuthReset getInstance() {

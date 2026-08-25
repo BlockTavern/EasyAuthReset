@@ -21,8 +21,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * 模组易失状态的内存 + 文件持久化（{@code config/easyauthreset_state.json}）：
  * <ul>
  *   <li>验证码记录（服务器重启后仍有效，直至过期）</li>
- *   <li>冷却表（服务器重启后继续生效）</li>
  * </ul>
+ * 冷却<b>不</b>持久化（服务器重启即清空：服务端重启通常为运维操作，不应让玩家背负残留冷却）。
  * 写盘为同步小文件，仅在指令执行/验证时触发，频率很低。
  */
 public class StateStorage {
@@ -41,13 +41,11 @@ public class StateStorage {
     private static class Data {
         public String version = "1";
         public Map<String, CodeEntry> codes = new HashMap<>();
-        public Map<String, Long> cooldowns = new HashMap<>();
     }
 
     private final Path path;
     private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
     private final Map<String, CodeEntry> codes = new ConcurrentHashMap<>();
-    private final Map<String, Long> cooldowns = new ConcurrentHashMap<>();
 
     public StateStorage() {
         this.path = FabricLoader.getInstance().getConfigDir().resolve("easyauthreset_state.json");
@@ -75,27 +73,6 @@ public class StateStorage {
         return codes;
     }
 
-    // ---- 冷却 ----
-
-    public Long getCooldown(String uuid) {
-        return cooldowns.get(uuid);
-    }
-
-    public void putCooldown(String uuid, long endMillis) {
-        cooldowns.put(uuid, endMillis);
-        save();
-    }
-
-    public void removeCooldown(String uuid) {
-        if (cooldowns.remove(uuid) != null) {
-            save();
-        }
-    }
-
-    public Map<String, Long> getCooldowns() {
-        return cooldowns;
-    }
-
     // ---- 持久化 ----
 
     private void load() {
@@ -104,23 +81,13 @@ public class StateStorage {
         }
         try (Reader reader = Files.newBufferedReader(path)) {
             Data data = gson.fromJson(reader, Data.class);
-            if (data != null) {
-                if (data.codes != null) {
-                    long now = System.currentTimeMillis();
-                    data.codes.forEach((uuid, entry) -> {
-                        if (entry != null && entry.expiry > now) {
-                            codes.put(uuid, entry);
-                        }
-                    });
-                }
-                if (data.cooldowns != null) {
-                    long now = System.currentTimeMillis();
-                    data.cooldowns.forEach((uuid, end) -> {
-                        if (end != null && end > now) {
-                            cooldowns.put(uuid, end);
-                        }
-                    });
-                }
+            if (data != null && data.codes != null) {
+                long now = System.currentTimeMillis();
+                data.codes.forEach((uuid, entry) -> {
+                    if (entry != null && entry.expiry > now) {
+                        codes.put(uuid, entry);
+                    }
+                });
             }
         } catch (IOException | JsonParseException e) {
             LOGGER.warn("Failed to read easyauthreset_state.json; ignoring saved state", e);
@@ -130,7 +97,6 @@ public class StateStorage {
     public void save() {
         Data data = new Data();
         data.codes.putAll(codes);
-        data.cooldowns.putAll(cooldowns);
         try (Writer writer = Files.newBufferedWriter(path)) {
             gson.toJson(data, writer);
         } catch (IOException e) {

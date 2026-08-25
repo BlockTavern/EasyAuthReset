@@ -121,6 +121,26 @@ public class GmailEmailService implements EmailService {
         send(config.alertEmail.trim(), subject, body, null);
     }
 
+    @Override
+    public void probe() {
+        executor.submit(() -> {
+            boolean ok;
+            try (java.net.Socket socket = new java.net.Socket()) {
+                socket.connect(new java.net.InetSocketAddress(config.smtpHost, config.smtpPort), 5000);
+                ok = true;
+            } catch (Exception e) {
+                ok = false;
+                LOGGER.error("SMTP probe failed: cannot reach {}:{} (timeout/blocked). Hint: if this host is "
+                        + "smtp.gmail.com and the server is in mainland China, switch to the sender's own provider "
+                        + "(e.g. smtp.qq.com:465 SSL).", config.smtpHost, config.smtpPort);
+            }
+            if (ok) {
+                LOGGER.info("SMTP probe OK: {}:{} reachable. Mail service ready (sender={}).",
+                        config.smtpHost, config.smtpPort, sender);
+            }
+        });
+    }
+
     private void send(String to, String subject, String body, Consumer<Boolean> onResult) {
         executor.submit(() -> {
             boolean ok = false;

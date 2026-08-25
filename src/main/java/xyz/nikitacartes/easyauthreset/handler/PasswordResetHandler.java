@@ -88,7 +88,7 @@ public class PasswordResetHandler {
     private final PlayerEmailStorage emailStorage;
     private final StateStorage state;
 
-    /** 冷却管理：UUID → 冷却结束时间戳（毫秒），并持久化到磁盘。 */
+    /** 冷却管理：UUID → 冷却结束时间戳（毫秒）。仅内存（重启即清空，不持久化）。 */
     private final Map<String, Long> cooldownMap = new ConcurrentHashMap<>();
     /** 安全告警节流：UUID → 上次告警时间戳（毫秒，60 秒内同类告警只发一次） */
     private final Map<String, Long> alertThrottle = new ConcurrentHashMap<>();
@@ -103,8 +103,6 @@ public class PasswordResetHandler {
         this.emailStorage = emailStorage;
         this.state = state;
         this.cooldownMillis = config.cooldownSeconds * 1000L;
-        // 从磁盘恢复未过期的冷却
-        state.getCooldowns().forEach(cooldownMap::putIfAbsent);
     }
 
     /**
@@ -272,7 +270,6 @@ public class PasswordResetHandler {
 
         emailStorage.setBinding(uuid, pendingEmail);
         cooldownMap.remove(uuid);
-        state.removeCooldown(uuid);
         LOGGER.info("Email bind success: player={} (uuid={}) -> email={}", player.getName().getString(), uuid, pendingEmail);
         player.sendMessage(Text.literal(Lang.msg(config, "bindDone", pendingEmail)), false);
         return true;
@@ -322,7 +319,6 @@ public class PasswordResetHandler {
 
         // 重置成功后解除冷却
         cooldownMap.remove(uuid);
-        state.removeCooldown(uuid);
         LOGGER.info("Password reset success: player={} (uuid={}), email={}", player.getName().getString(), uuid,
                 emailStorage.getEmail(uuid));
 
@@ -390,7 +386,6 @@ public class PasswordResetHandler {
 
     private void putCooldown(String uuid, long endMillis) {
         cooldownMap.put(uuid, endMillis);
-        state.putCooldown(uuid, endMillis);
     }
 
     /**

@@ -23,5 +23,11 @@ public interface EmailService {
      */
     void sendAdminAlert(String subject, String body);
 
+    /**
+     * 启动时探测 SMTP 服务器的 TCP 可达性（异步，仅记日志）。
+     * 用于快速发现"服务器连不上 smtp.gmail.com 之类"的网络问题。
+     */
+    void probe();
+
     void shutdown();
 }

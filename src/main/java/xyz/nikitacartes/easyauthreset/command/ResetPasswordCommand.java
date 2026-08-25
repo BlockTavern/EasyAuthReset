@@ -3,6 +3,7 @@ package xyz.nikitacartes.easyauthreset.command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
@@ -10,6 +11,8 @@ import xyz.nikitacartes.easyauthreset.EasyAuthReset;
 import xyz.nikitacartes.easyauthreset.config.EasyAuthResetConfig;
 import xyz.nikitacartes.easyauthreset.handler.PasswordResetHandler;
 import xyz.nikitacartes.easyauthreset.util.Lang;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
@@ -30,6 +33,7 @@ import static net.minecraft.server.command.CommandManager.literal;
  * email 参数之前，否则输入 "bind xxx" 会被当成邮箱参数。</p>
  */
 public class ResetPasswordCommand {
+    private static final Logger LOGGER = LoggerFactory.getLogger(EasyAuthReset.MOD_ID);
 
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register(literal("resetpassword")
@@ -50,6 +54,37 @@ public class ResetPasswordCommand {
                                 .executes(ResetPasswordCommand::confirm)))
                 .then(argument("email", StringArgumentType.greedyString())
                         .executes(ResetPasswordCommand::request)));
+    }
+
+    /**
+     * 管理指令（OP/控制台）：/easyauthreset test &lt;邮箱&gt; —— 发送测试邮件，验证 SMTP 配置。
+     */
+    public static void registerAdmin(CommandDispatcher<ServerCommandSource> dispatcher) {
+        dispatcher.register(literal("easyauthreset")
+                .requires(source -> source.hasPermissionLevel(2))
+                .then(literal("test")
+                        .then(argument("email", StringArgumentType.greedyString())
+                                .executes(ResetPasswordCommand::sendTestMail))));
+    }
+
+    private static int sendTestMail(CommandContext<ServerCommandSource> ctx) {
+        String email = StringArgumentType.getString(ctx, "email").trim();
+        if (!email.matches("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")) {
+            ctx.getSource().sendFeedback(() -> Text.literal("§c无效邮箱地址。"), false);
+            return 0;
+        }
+        ctx.getSource().sendFeedback(() -> Text.literal("§e正在发送测试邮件至 " + email + "（约 5-15 秒），请查看收件箱/垃圾箱…"), false);
+        EasyAuthReset.getInstance().getEmailService()
+                .sendVerificationCode(email, "SMTP 测试", "000000", null, sent -> {
+                    MinecraftServer server = ctx.getSource().getServer();
+                    if (server != null) {
+                        server.execute(() -> ctx.getSource().sendFeedback(() -> Text.literal(
+                                sent ? "§a测试邮件发送成功（发件人: " + EasyAuthReset.getInstance().getConfig().emailSender + "）。"
+                                        : "§c测试邮件发送失败！请查看服务器日志中的提示（host/端口/发件人是否匹配）。"), false));
+                    }
+                });
+        LOGGER.info("SMTP test mail requested to {} by {}", email, ctx.getSource().getName());
+        return 1;
     }
 
     private static int requestRoot(CommandContext<ServerCommandSource> ctx) {

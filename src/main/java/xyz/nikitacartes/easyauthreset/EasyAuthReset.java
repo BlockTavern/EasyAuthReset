@@ -48,8 +48,9 @@ public class EasyAuthReset implements ModInitializer {
 
         // 2. 邮件服务
         emailService = new GmailEmailService(config);
+        emailService.probe(); // 异步 SMTP 可达性探测（仅日志，帮助快速定位网络问题）
 
-        // 3. 易失状态持久化（验证码 + 冷却，重启不丢）
+        // 3. 易失状态持久化（验证码重启不丢；冷却仅内存、重启清空）
         stateStorage = new StateStorage();
 
         // 4. 验证码管理器（内存 + 文件存储，过期自动清理；支持绑定激活 token）
@@ -67,9 +68,10 @@ public class EasyAuthReset implements ModInitializer {
         activationServer.start();
 
         // 8. 注册指令
-        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) ->
-                ResetPasswordCommand.register(dispatcher)
-        );
+        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
+            ResetPasswordCommand.register(dispatcher);
+            ResetPasswordCommand.registerAdmin(dispatcher);
+        });
 
         // 9. 服务器停止时保存状态并释放资源
         ServerLifecycleEvents.SERVER_STOPPED.register(server -> {

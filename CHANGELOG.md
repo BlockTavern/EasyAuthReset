@@ -5,6 +5,11 @@
 
 ---
 
+## v1.0.9
+
+- 中文：新增管理命令 `/easyauthreset diag`——随时随地运行 SMTP 网络诊断（DNS 解析 + 465/587 端口连通性），无需重启服务器即可判断 Gmail/QQ 哪条路通。
+- EN: New admin command `/easyauthreset diag` — on-demand SMTP network diagnostics (DNS + 465/587 port reachability), no restart needed.
+
 ## v1.0.8
 
 - 中文：统一游戏内消息配色方案——成功=绿、进行中=黄、错误=红、邮箱/临时密码=青色高亮、警告=金、次要说明=灰。

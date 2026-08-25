@@ -29,5 +29,11 @@ public interface EmailService {
      */
     void probe();
 
+    /**
+     * 按需网络诊断（DNS + 465/587 端口连通性），结果通过回调返回。
+     * 供 /easyauthreset diag 管理命令使用。
+     */
+    void runDiagnostics(java.util.function.Consumer<java.util.List<String>> onResult);
+
     void shutdown();
 }

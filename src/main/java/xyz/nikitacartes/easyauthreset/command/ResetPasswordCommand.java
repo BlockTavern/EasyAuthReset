@@ -64,7 +64,25 @@ public class ResetPasswordCommand {
                 .requires(source -> source.hasPermissionLevel(2))
                 .then(literal("test")
                         .then(argument("email", StringArgumentType.greedyString())
-                                .executes(ResetPasswordCommand::sendTestMail))));
+                                .executes(ResetPasswordCommand::sendTestMail)))
+                .then(literal("diag")
+                        .executes(ResetPasswordCommand::runDiag)));
+    }
+
+    private static int runDiag(CommandContext<ServerCommandSource> ctx) {
+        ctx.getSource().sendFeedback(() -> Text.literal("§e正在运行 SMTP 网络诊断（约 5-20 秒）…"), false);
+        EasyAuthReset.getInstance().getEmailService().runDiagnostics(lines -> {
+            MinecraftServer server = ctx.getSource().getServer();
+            if (server == null) {
+                return;
+            }
+            server.execute(() -> {
+                for (String line : lines) {
+                    ctx.getSource().sendFeedback(() -> Text.literal("§6" + line), false);
+                }
+            });
+        });
+        return 1;
     }
 
     private static int sendTestMail(CommandContext<ServerCommandSource> ctx) {

@@ -122,6 +122,41 @@ public class GmailEmailService implements EmailService {
     }
 
     @Override
+    public void runDiagnostics(java.util.function.Consumer<java.util.List<String>> onResult) {
+        executor.submit(() -> {
+            java.util.List<String> lines = new java.util.ArrayList<>();
+            // DNS
+            try {
+                java.net.InetAddress[] addrs = java.net.InetAddress.getAllByName(config.smtpHost);
+                StringBuilder sb = new StringBuilder();
+                for (java.net.InetAddress a : addrs) {
+                    if (sb.length() > 0) sb.append(", ");
+                    sb.append(a.getHostAddress());
+                }
+                boolean preferV6 = java.util.stream.Stream.of(addrs)
+                        .anyMatch(a -> a instanceof java.net.Inet6Address)
+                        && System.getProperty("java.net.preferIPv4Stack") == null;
+                lines.add("DNS " + config.smtpHost + " -> " + sb + (preferV6
+                        ? " （检测到 IPv6，若超时可尝试 -Djava.net.preferIPv4Stack=true）" : ""));
+            } catch (Exception e) {
+                lines.add("DNS FAILED: " + config.smtpHost + " -> " + e.getMessage());
+            }
+            // 端口（配置端口 + 465/587 各测一次，去重）
+            java.util.LinkedHashSet<Integer> ports = new java.util.LinkedHashSet<>();
+            ports.add(config.smtpPort);
+            ports.add(465);
+            ports.add(587);
+            for (int p : ports) {
+                boolean ok = tcpProbe(config.smtpHost, p);
+                lines.add("TCP " + config.smtpHost + ":" + p + (ok ? " ✅ 可达" : " ❌ 不可达/超时"));
+            }
+            lines.add("提示: 仅 465 可达 → 配置 smtpPort=465 + smtpSsl=true；"
+                    + "都不达 → 换发件邮箱所属服务商的 SMTP（QQ: smtp.qq.com:465）。");
+            onResult.accept(lines);
+        });
+    }
+
+    @Override
     public void probe() {
         executor.submit(() -> {
             // 1) DNS 解析诊断（很多"连接超时"其实是 DNS/IPv6 问题）

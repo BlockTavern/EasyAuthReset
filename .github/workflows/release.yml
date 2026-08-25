@@ -42,19 +42,25 @@ jobs:
             echo "::warning::Tag v$t does not match mod_version $v in gradle.properties (release jar will still be built)"
           fi
 
-      - name: Generate release notes (changes since previous tag)
+      - name: Generate release notes (from CHANGELOG.md, bilingual; fallback to git log)
         id: notes
         run: |
-          PREV=$(git tag --sort=-creatordate | sed -n 2p)
-          if [ -n "$PREV" ]; then
-            CHANGES=$(git log --pretty=format:'- %s' "$PREV".."$GITHUB_REF_NAME")
-          else
-            CHANGES=$(git log --pretty=format:'- %s' -n 30 HEAD)
+          SECTION=$(awk -v t="## ${GITHUB_REF_NAME}" '
+            index($0, t) == 1 {found=1; next}
+            found && /^## / {exit}
+            found {print}
+          ' CHANGELOG.md)
+          if [ -z "$SECTION" ]; then
+            PREV=$(git tag --sort=-creatordate | sed -n 2p)
+            if [ -n "$PREV" ]; then
+              SECTION=$(git log --pretty=format:'- %s' "$PREV".."$GITHUB_REF_NAME")
+            else
+              SECTION=$(git log --pretty=format:'- %s' -n 30 HEAD)
+            fi
           fi
           echo "changes<<EOF" >> "$GITHUB_OUTPUT"
-          echo "$CHANGES" >> "$GITHUB_OUTPUT"
+          echo "$SECTION" >> "$GITHUB_OUTPUT"
           echo "EOF" >> "$GITHUB_OUTPUT"
-          echo "previous tag: $PREV"
 
       - name: Keep only the mod jar (drop sources jar from release assets)
         run: rm -f build/libs/*-sources.jar build/libs/*-dev*.jar
@@ -65,13 +71,13 @@ jobs:
           files: build/libs/easyauthreset-*.jar
           name: EasyAuthReset ${{ github.ref_name }}
           body: |
-            ## 更新内容（自上一版本）
+            ## 更新内容 / Changelog
 
             ${{ steps.notes.outputs.changes }}
 
-            ## 说明
+            ## 说明 / About
 
-            - 目标环境：Fabric 1.21 / 1.21.1（纯服务端）
-            - 依赖：Fabric API、EasyAuth ≥ 3.3.5（推荐 3.4.4）
-            - 用法：把 `easyauthreset-*.jar` 放入服务器 `mods/`，启动后按 `config/easyauthreset.json` 中 `_说明` 配置 SMTP 即可
-            - 完整说明：README.md
+            - 目标环境 / Target：Fabric 1.21 / 1.21.1（纯服务端 / server-side only）
+            - 依赖 / Depends：Fabric API、EasyAuth ≥ 3.3.5（推荐 3.4.4）
+            - 用法 / Usage：把 `easyauthreset-*.jar` 放入服务器 `mods/`；启动后按 `config/easyauthreset.json` 的 `_说明` 配置 SMTP。Put the jar into the server's `mods/` folder and follow the `_说明` hints in the generated config to set up SMTP.
+            - 完整说明 / Docs：README.md

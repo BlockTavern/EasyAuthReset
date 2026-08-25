@@ -18,6 +18,7 @@ public final class Lang {
                 + "       /resetpassword bind <邮箱> | /resetpassword bind confirm <验证码>");
         zh.put("onlyPlayers", "此命令只能由玩家执行");
         zh.put("sendingCode", "正在发送验证码至 {0}，请稍候…");
+        zh.put("sendingCodeBound", "该账号已绑定邮箱，正在向绑定邮箱 {0} 发送验证码，请稍候…");
         zh.put("codeSent", "验证码已发送至 {0}。\n若等待期间被踢出，请重新连接后直接输入 /resetpassword confirm <验证码> 完成重置。");
         zh.put("codeSentOwner", "验证码已发送至你登记的邮箱 {0}。\n若等待期间被踢出，请重新连接后直接输入 /resetpassword confirm <验证码> 完成重置。");
         zh.put("bindCodeSent", "绑定验证码已发送至 {0}。\n输入 /resetpassword bind confirm <验证码> 完成绑定，之后重置将只发往该邮箱。");
@@ -40,7 +41,6 @@ public final class Lang {
         zh.put("bindDone", "绑定成功！该账号的邮箱为 {0}，之后重置密码只会发送到该邮箱。现在可直接输入 /resetpassword 申请重置。");
         zh.put("bindConfirmInvalid", "绑定验证码错误或已过期，请重新执行 /resetpassword bind <邮箱>。");
         zh.put("bindNotNeeded", "该账号已由服主登记邮箱，无需自助绑定。");
-        zh.put("noBoundEmail", "该账号尚未绑定邮箱，请使用 /resetpassword <邮箱> 或先绑定。");
         zh.put("internalError", "内部错误，请稍后再试。");
         zh.put("ipMismatchBlocked", "安全保护：检测到当前网络环境与账号历史登录 IP 不同，本次操作已暂停并向管理员告警。如有疑问请联系管理员。");
         zh.put("ipMismatchWarn", "安全提示：当前网络环境与账号历史登录 IP 不同，本次操作已放行并向管理员告警。如有疑问请联系管理员。");
@@ -51,6 +51,7 @@ public final class Lang {
                 + "       /resetpassword bind <email> | /resetpassword bind confirm <code>");
         en.put("onlyPlayers", "This command can only be used by players");
         en.put("sendingCode", "Sending verification code to {0}, please wait…");
+        en.put("sendingCodeBound", "Account has a bound email — sending verification code to {0}, please wait…");
         en.put("codeSent", "Verification code sent to {0}.\nIf you were kicked while waiting, reconnect and run /resetpassword confirm <code>.");
         en.put("codeSentOwner", "Verification code sent to your registered email {0}.\nIf you were kicked while waiting, reconnect and run /resetpassword confirm <code>.");
         en.put("bindCodeSent", "Binding verification code sent to {0}.\nRun /resetpassword bind confirm <code> to finish; future resets will only go to this email.");
@@ -73,7 +74,6 @@ public final class Lang {
         en.put("bindDone", "Bound successfully! Reset emails for this account will only go to {0}. You can now run /resetpassword.");
         en.put("bindConfirmInvalid", "Binding code wrong or expired. Run /resetpassword bind <email> again.");
         en.put("bindNotNeeded", "This account has an admin-configured email; no need to bind.");
-        en.put("noBoundEmail", "This account has no bound email. Use /resetpassword <email> or bind one first.");
         en.put("internalError", "Internal error. Try again later.");
         en.put("ipMismatchBlocked", "Security protection: your current IP differs from the account's last login IP. Action blocked and admins alerted.");
         en.put("ipMismatchWarn", "Security notice: your current IP differs from the account's last login IP. Action allowed and admins alerted.");

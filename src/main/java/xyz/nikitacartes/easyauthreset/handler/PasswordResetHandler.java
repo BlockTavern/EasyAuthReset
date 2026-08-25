@@ -349,6 +349,12 @@ public class PasswordResetHandler {
         return emailStorage.getBinding(uuid);
     }
 
+    /** 该账号实际生效的收件邮箱（服主登记 > 玩家绑定），无则返回 null。 */
+    public String effectiveEmail(ServerPlayerEntity player) {
+        return emailStorage.resolveEffectiveEmail(player.getUuidAsString(),
+                player.getName().getString().toLowerCase(Locale.ENGLISH));
+    }
+
     /**
      * 获取当前玩家的 EasyAuth 数据条目。
      * 优先取 EasyAuth 在连接时通过 Mixin 注入到玩家实体上的缓存条目

@@ -60,7 +60,10 @@ public class ResetPasswordCommand {
         }
         PasswordResetHandler handler = EasyAuthReset.getInstance().getResetHandler();
         switch (handler.requestReset(player, null)) {
-            case SUCCESS -> sendLang(ctx, "sendingCode", "绑定邮箱");
+            case SUCCESS -> {
+                String effective = handler.effectiveEmail(player);
+                sendLang(ctx, "sendingCodeBound", effective != null ? effective : "");
+            }
             case COOLDOWN -> sendCooldown(ctx, handler, player);
             case NOT_REGISTERED -> sendLang(ctx, "notRegistered");
             case INVALID_EMAIL -> sendLang(ctx, "invalidEmail");
@@ -82,7 +85,15 @@ public class ResetPasswordCommand {
         PasswordResetHandler handler = EasyAuthReset.getInstance().getResetHandler();
 
         switch (handler.requestReset(player, email)) {
-            case SUCCESS -> sendLang(ctx, "sendingCode", email);
+            case SUCCESS -> {
+                String effective = handler.effectiveEmail(player);
+                // 已绑定/已登记：实际发往绑定邮箱（即使玩家输入了别的邮箱），文案要说清楚
+                if (effective != null && !effective.equals(email.trim())) {
+                    sendLang(ctx, "sendingCodeBound", effective);
+                } else {
+                    sendLang(ctx, "sendingCode", effective != null ? effective : email);
+                }
+            }
             case COOLDOWN -> sendCooldown(ctx, handler, player);
             case NOT_REGISTERED -> sendLang(ctx, "notRegistered");
             case INVALID_EMAIL -> sendLang(ctx, "invalidEmail");

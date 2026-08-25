@@ -15,6 +15,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # 需要完整历史以生成对比上一版本的更新日志
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4
@@ -40,13 +42,34 @@ jobs:
             echo "::warning::Tag v$t does not match mod_version $v in gradle.properties (release jar will still be built)"
           fi
 
-      - name: Publish GitHub Release
+      - name: Generate release notes (changes since previous tag)
+        id: notes
+        run: |
+          PREV=$(git tag --sort=-creatordate | sed -n 2p)
+          if [ -n "$PREV" ]; then
+            CHANGES=$(git log --pretty=format:'- %s' "$PREV".."$GITHUB_REF_NAME")
+          else
+            CHANGES=$(git log --pretty=format:'- %s' -n 30 HEAD)
+          fi
+          echo "changes<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$CHANGES" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+          echo "previous tag: $PREV"
+
+      - name: Keep only the mod jar (drop sources jar from release assets)
+        run: rm -f build/libs/*-sources.jar build/libs/*-dev*.jar
+
+      - name: Publish GitHub Release (mod jar only)
         uses: softprops/action-gh-release@v2
         with:
           files: build/libs/easyauthreset-*.jar
           name: EasyAuthReset ${{ github.ref_name }}
           body: |
-            自动构建发布（EasyAuthReset ${{ github.ref_name }}）
+            ## 更新内容（自上一版本）
+
+            ${{ steps.notes.outputs.changes }}
+
+            ## 说明
 
             - 目标环境：Fabric 1.21 / 1.21.1（纯服务端）
             - 依赖：Fabric API、EasyAuth ≥ 3.3.5（推荐 3.4.4）

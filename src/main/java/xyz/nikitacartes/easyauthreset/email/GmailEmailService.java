@@ -124,21 +124,58 @@ public class GmailEmailService implements EmailService {
     @Override
     public void probe() {
         executor.submit(() -> {
-            boolean ok;
-            try (java.net.Socket socket = new java.net.Socket()) {
-                socket.connect(new java.net.InetSocketAddress(config.smtpHost, config.smtpPort), 5000);
-                ok = true;
+            // 1) DNS 解析诊断（很多"连接超时"其实是 DNS/IPv6 问题）
+            try {
+                java.net.InetAddress[] addrs = java.net.InetAddress.getAllByName(config.smtpHost);
+                StringBuilder sb = new StringBuilder();
+                for (java.net.InetAddress a : addrs) {
+                    if (sb.length() > 0) sb.append(", ");
+                    sb.append(a.getHostAddress());
+                }
+                // IPv6 优先被选中是常见超时原因
+                boolean preferV6 = java.util.stream.Stream.of(addrs)
+                        .anyMatch(a -> a instanceof java.net.Inet6Address)
+                        && System.getProperty("java.net.preferIPv4Stack") == null;
+                LOGGER.info("SMTP DNS resolved {} -> {} (IPv6 in chain={}); if connect fails, start the server "
+                        + "with -Djava.net.preferIPv4Stack=true", config.smtpHost, sb, preferV6);
             } catch (Exception e) {
-                ok = false;
-                LOGGER.error("SMTP probe failed: cannot reach {}:{} (timeout/blocked). Hint: if this host is "
-                        + "smtp.gmail.com and the server is in mainland China, switch to the sender's own provider "
-                        + "(e.g. smtp.qq.com:465 SSL).", config.smtpHost, config.smtpPort);
+                LOGGER.error("SMTP DNS resolution FAILED for {}: {}. Check the server's DNS and smtpHost spelling.", config.smtpHost, e.getMessage());
+                return;
             }
+
+            // 2) 探测配置端口
+            boolean ok = tcpProbe(config.smtpHost, config.smtpPort);
             if (ok) {
                 LOGGER.info("SMTP probe OK: {}:{} reachable. Mail service ready (sender={}).",
                         config.smtpHost, config.smtpPort, sender);
+                return;
             }
+
+            // 3) 备选端口自动探测（465/587 常有一条通、一条被过滤）
+            LOGGER.error("SMTP probe FAILED: cannot reach {}:{} (configured). Trying alternate ports for diagnosis...",
+                    config.smtpHost, config.smtpPort);
+            for (int alt : (config.smtpPort == 465 ? new int[]{587} : new int[]{465})) {
+                boolean altOk = tcpProbe(config.smtpHost, alt);
+                if (altOk) {
+                    LOGGER.error("SMTP alt-port {}:{} IS reachable. Suggest setting smtpPort={} and smtpSsl={}.",
+                            config.smtpHost, alt, alt, alt == 465);
+                } else {
+                    LOGGER.error("SMTP alt-port {}:{} not reachable either.", config.smtpHost, alt);
+                }
+            }
+            LOGGER.error("SMTP diagnosis done. If host is smtp.gmail.com and no port responds: the server's egress "
+                    + "to Google is filtered — use the sender's own provider (QQ: smtp.qq.com:465 + SSL) or move the "
+                    + "server to a network that reaches Google. If only 587 fails, try 465 SSL first.");
         });
+    }
+
+    private boolean tcpProbe(String host, int port) {
+        try (java.net.Socket socket = new java.net.Socket()) {
+            socket.connect(new java.net.InetSocketAddress(host, port), 5000);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     private void send(String to, String subject, String body, Consumer<Boolean> onResult) {

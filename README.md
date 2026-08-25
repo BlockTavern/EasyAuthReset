@@ -59,7 +59,9 @@
 | `smtpTls` | `true` | STARTTLS（587 端口） |
 | `smtpSsl` | `false` | SSL（465 端口），开启则忽略 `smtpTls` |
 | `emailSender` / `emailPassword` | — | 发件邮箱与**应用专用密码**（非登录密码） |
+| `emailSenderName` | `""` | 发件人显示名（可中文，如 `BlockTavern（方块酒馆）`；留空只显示地址） |
 | `emailPasswordEnvVar` | `""` | 从环境变量读取 SMTP 密码（优先于 `emailPassword`），如 `EASTYAUTHRESET_SMTP_PASSWORD` |
+| `emailReplyTo` | `""` | 回复地址（Reply-To）：玩家点"回复"发往这里（如 `support@你的域名`；回复不经任何 SMTP，域名只收信的邮箱也能用） |
 | `smtpTimeoutMillis` | `15000` | SMTP 连接/读写超时 |
 | `smtpRetries` | `1` | 发送失败额外重试次数（间隔 3 秒，0–3） |
 | `codeExpirySeconds` | `300` | 验证码有效期（30–86400） |
@@ -81,7 +83,7 @@
 
 配置缺失/非法字段会自动回填默认值并重写文件，不会导致启动失败。
 
-**常见 SMTP 服务商配置（选一个，`emailSender` 必须是该服务商下真实可登录的邮箱）：**
+**常见 SMTP 服务商配置（选一个，`emailSender` 必须是该服务商下真实可登录的邮箱；`emailSenderName` 可自定义发件人名字，如 "BlockTavern（方块酒馆）"）：**
 
 | 服务商 | smtpHost | smtpPort | smtpSsl | 密码填什么 |
 |---|---|---|---|---|
@@ -93,7 +95,8 @@
 
 > ⚠️ **大陆服务器实测无法直连 `smtp.gmail.com`（连接超时）**；且 Gmail SMTP 只能发送 Gmail 账号的邮件。
 > 若 `emailSender` 是 QQ/163/自建域名邮箱，请务必把 `smtpHost` 换成对应服务商地址，否则发送必然失败。
-> 自建域名邮箱（如通过 Cloudflare Email Routing 转发）**只能收信、不支持 SMTP 发信**，需使用腾讯企业邮/阿里云企业邮等开通发信服务。
+> 自建域名邮箱（如通过 Cloudflare Email Routing 转发）**只能收信、不支持 SMTP 发信**——想用 `support@某域名` 发件需开通腾讯企业邮/阿里云企业邮（注意：开通企业邮后 MX 会指向企业邮，Cloudflare 转发停用，二者只能选其一）。
+> **"Gmail 发送身份 + 域名发件"的替代**：自动邮件用 QQ/163 邮箱发（`emailSender`），`emailReplyTo` 配 `support@你的域名`——玩家点"回复"即到你的域名邮箱（回复是玩家客户端直接投递，不经任何 SMTP，不受服务器网络影响）。
 > 模组启动时会检测"发件域名与 Gmail 服务器不匹配"并给出警告提示。
 
 **安全向推荐配置**（开箱即用偏安全，保持默认即可，按需微调）：

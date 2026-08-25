@@ -128,7 +128,12 @@ public class GmailEmailService implements EmailService {
             for (int i = 1; i <= attempts && !ok; i++) {
                 try {
                     MimeMessage msg = new MimeMessage(session);
-                    msg.setFrom(new InternetAddress(sender));
+                    // From 头：地址 + 可配置的发件人显示名（支持中文，UTF-8 编码）
+                    if (config.emailSenderName != null && !config.emailSenderName.isBlank()) {
+                        msg.setFrom(new InternetAddress(sender, config.emailSenderName.trim(), "UTF-8"));
+                    } else {
+                        msg.setFrom(new InternetAddress(sender));
+                    }
                     if (config.emailReplyTo != null && !config.emailReplyTo.isBlank()) {
                         msg.setReplyTo(new javax.mail.Address[]{new InternetAddress(config.emailReplyTo.trim())});
                     }

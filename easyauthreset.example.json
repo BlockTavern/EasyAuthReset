@@ -32,6 +32,7 @@
   "smtpTls": true,
   "smtpSsl": false,
   "emailSender": "your-email@gmail.com",
+  "emailSenderName": "BlockTavern（方块酒馆）",
   "emailPassword": "",
   "emailPasswordEnvVar": "EASTYAUTHRESET_SMTP_PASSWORD",
   "emailReplyTo": "",

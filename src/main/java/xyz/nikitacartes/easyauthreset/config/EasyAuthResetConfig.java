@@ -37,6 +37,11 @@ public class EasyAuthResetConfig {
     /** 是否启用 SSL（465 端口；启用时会覆盖 STARTTLS） */
     public boolean smtpSsl = false;
     public String emailSender = "your-email@gmail.com";
+    /**
+     * 可选：发件人显示名（可中文，如 "BlockTavern（方块酒馆）"；留空则邮件只显示邮箱地址）。
+     * 玩家邮箱里看到形如：BlockTavern（方块酒馆） &lt;2762832501@qq.com&gt;
+     */
+    public String emailSenderName = "";
     /** Gmail 应用专用密码（非登录密码），在 Google 账号开启两步验证后生成 */
     public String emailPassword = "";
     /**
@@ -188,6 +193,7 @@ public class EasyAuthResetConfig {
         if (smtpTimeoutMillis < 1000 || smtpTimeoutMillis > 120000) smtpTimeoutMillis = 15000;
         if (smtpRetries < 0 || smtpRetries > 3) smtpRetries = 1;
         if (emailSender == null || emailSender.isBlank()) emailSender = "your-email@gmail.com";
+        if (emailSenderName == null) emailSenderName = "";
         if (emailPassword == null) emailPassword = "";
         if (emailPasswordEnvVar == null) emailPasswordEnvVar = "";
         if (emailReplyTo == null) emailReplyTo = "";
@@ -236,6 +242,7 @@ public class EasyAuthResetConfig {
         h.addProperty("smtpTls", "是否启用 STARTTLS（587 端口用）");
         h.addProperty("smtpSsl", "是否启用 SSL（465 端口用；开启后忽略 smtpTls）");
         h.addProperty("emailSender", "【必填】发件邮箱：所有验证码/临时密码邮件从它发出，填你申请的应用专用密码所属的邮箱");
+        h.addProperty("emailSenderName", "可选：发件人显示名（可中文），如 BlockTavern（方块酒馆）；留空则只显示邮箱地址");
         h.addProperty("emailPassword", "【必填】该邮箱的应用专用密码/授权码（不是邮箱登录密码！Gmail：开启两步验证后到 Google 账户-安全-应用专用密码生成；QQ 邮箱：设置-账户-开启SMTP后生成授权码）");
         h.addProperty("emailPasswordEnvVar", "可选：环境变量名。填了则优先从环境变量读 SMTP 密码（如 EASTAUTHRESET_SMTP_PASSWORD），密码可不写进本文件");
         h.addProperty("emailReplyTo", "可选：回复地址。玩家点邮件里的\"回复\"时发到这个地址（如 support@你的域名.com）；留空则回复到发件邮箱（emailSender）");
